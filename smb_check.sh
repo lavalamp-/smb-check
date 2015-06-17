@@ -1,8 +1,8 @@
 #!/bin/bash
 
 FILE=smb_endpoints
-OUT_FILE=authed_smb_check_output_10.133
-AUTH_FILE=smb_auth_file
+OUT_FILE=smg_check
+AUTH_FILE=
 
 INFO="[ \033[1;33m=\033[0m ] "
 SUCCESS="[ \033[1;32m+\033[0m ] "
@@ -57,6 +57,8 @@ while read p; do
 				echo -e "$FAIL No media found in device at \\\\\\\\$p\\\\$line. Continuing."
 			elif [[ $SHARE_RESULT == *"NT_STATUS_LOGON_FAILURE"* ]]; then
 				echo -e "$FAIL Logon failure thrown for \\\\\\\\$p\\\\$line. Continuing."
+			elif [[ $SHARE_RESULT == *"NT_STATUS_ACCESS_DENIED"* ]]; then
+				echo -e "$FAIL Access denied for \\\\\\\\$p\\\\$line. Continuing."
 			elif [[ $SHARE_RESULT == *"NT_STATUS"* ]]; then
 				echo -e "$FAIL Unexpected NT_STATUS error thrown for \\\\\\\\$p\\\\$line. Continuing."
 			else
