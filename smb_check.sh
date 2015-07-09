@@ -1,7 +1,7 @@
 #!/bin/bash
 
 FILE=smb_endpoints
-OUT_FILE=smg_check
+OUT_FILE=smb_check_no_auth
 AUTH_FILE=
 
 INFO="[ \033[1;33m=\033[0m ] "
@@ -39,12 +39,14 @@ while read p; do
 		while read -r line; do
 			if [ -z "$AUTH_FILE" ]; then
 				echo -e "$INFO Testing \\\\\\\\$p\\\\$line without credentials"
-				COMMAND="smbclient -N \\\\$p\\$line -c ls 2>/dev/null"
+				COMMAND="smbclient -N \\\\\\\\$p\\\\$line -c ls 2>/dev/null"
 			else
 				echo -e "$INFO Testing \\\\\\\\$p\\\\$line with credentials from $AUTH_FILE"
 				COMMAND="smbclient -A $AUTH_FILE \\\\\\\\$p\\\\$line -c ls 2>/dev/null"
 			fi
 			SHARE_RESULT=$(eval $COMMAND)
+			echo "$COMMAND" >> smbclient_responses
+			echo "$SHARE_RESULT" >> smbclient_responses
 			if [[ $SHARE_RESULT == *"NT_STATUS_ACCESS_DENIED"* ]]; then
 				echo -e "$FAIL Access denied to \\\\\\\\$p\\\\$line."
 			elif [[ $SHARE_RESULT == *"NT_STATUS_BAD_NETWORK_NAME"* ]]; then
@@ -59,6 +61,8 @@ while read p; do
 				echo -e "$FAIL Logon failure thrown for \\\\\\\\$p\\\\$line. Continuing."
 			elif [[ $SHARE_RESULT == *"NT_STATUS_ACCESS_DENIED"* ]]; then
 				echo -e "$FAIL Access denied for \\\\\\\\$p\\\\$line. Continuing."
+			elif [[ $SHARE_RESULT == *"NT_STATUS_NETWORK_ACCESS_DENIED"* ]]; then
+				echo -e "$FAIL Network access denied for \\\\\\\\$p\\\\$line. Continuing."
 			elif [[ $SHARE_RESULT == *"NT_STATUS"* ]]; then
 				echo -e "$FAIL Unexpected NT_STATUS error thrown for \\\\\\\\$p\\\\$line. Continuing."
 			else
